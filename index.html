@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Asistente del hogar · prototipo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --page:#C9D3CF;
+  --tile:#DDE5E1;
+  --tile-line:#D0DAD5;
+  --head:#1F5E57;
+  --head-ink:#F2F7F5;
+  --bot:#FFFFFF;
+  --user:#CFE9D6;
+  --ink:#1B2422;
+  --muted:#5B6B67;
+  --chip:#FFFFFF;
+  --chip-ink:#1F5E57;
+  --chip-line:#9DBDB5;
+  --red:#C8372D;
+  --amber:#D99413;
+  --green:#3C8D4F;
+  --off:#C6CFCB;
+  --card:#FFFFFF;
+  --focus:#0E6B9C;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --page:#0D1312;
+    --tile:#152120;
+    --tile-line:#1B2A28;
+    --head:#173F3B;
+    --head-ink:#E6EEEC;
+    --bot:#1F2B2A;
+    --user:#234436;
+    --ink:#E6EEEC;
+    --muted:#9BB0AB;
+    --chip:#1F2B2A;
+    --chip-ink:#9FD6C8;
+    --chip-line:#3A5853;
+    --off:#33403E;
+    --card:#1F2B2A;
+    --focus:#7CC4E8;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --page:#0D1312; --tile:#152120; --tile-line:#1B2A28; --head:#173F3B; --head-ink:#E6EEEC;
+  --bot:#1F2B2A; --user:#234436; --ink:#E6EEEC; --muted:#9BB0AB; --chip:#1F2B2A;
+  --chip-ink:#9FD6C8; --chip-line:#3A5853; --off:#33403E; --card:#1F2B2A; --focus:#7CC4E8;
+}
+*,*::before,*::after{box-sizing:inherit}
+html,body{height:100%;margin:0}
+body{
+  background:var(--page);
+  color:var(--ink);
+  font-family:"Atkinson Hyperlegible", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size:16px;
+  line-height:1.4;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:40px;
+}
+.aside{max-width:260px;color:var(--ink)}
+.aside h1{font-size:1.5rem;line-height:1.2;margin:0 0 .6rem}
+.aside p{margin:0 0 .8rem;color:var(--muted)}
+.phone{
+  width:390px;
+  height:min(820px, 100%);
+  max-height:100%;
+  display:flex;
+  flex-direction:column;
+  border-radius:28px;
+  overflow:hidden;
+  box-shadow:0 18px 50px rgba(20,40,36,.28);
+  background:var(--tile);
+}
+header{
+  background:var(--head);
+  color:var(--head-ink);
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 14px 14px 16px;
+  flex:none;
+}
+.avatar{
+  width:40px;height:40px;border-radius:50%;
+  background:var(--head-ink);color:var(--head);
+  display:grid;place-items:center;font-size:20px;flex:none;
+}
+.who{flex:1;min-width:0}
+.who strong{display:block;font-size:1.05rem}
+.who span{font-size:.82rem;opacity:.85}
+.restart{
+  background:transparent;border:1px solid rgba(255,255,255,.4);color:var(--head-ink);
+  border-radius:999px;padding:6px 12px;font:inherit;font-size:.85rem;cursor:pointer;
+}
+.chat{
+  flex:1;
+  overflow-y:auto;
+  padding:16px 12px 8px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  background-color:var(--tile);
+  background-image:
+    linear-gradient(var(--tile-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--tile-line) 1px, transparent 1px);
+  background-size:44px 44px;
+}
+.msg{
+  max-width:84%;
+  padding:9px 12px;
+  border-radius:14px;
+  white-space:pre-line;
+  word-wrap:break-word;
+}
+.bot{align-self:flex-start;background:var(--bot);border-top-left-radius:4px}
+.user{align-self:flex-end;background:var(--user);border-top-right-radius:4px}
+.note{font-size:.78rem;color:var(--muted);margin-top:4px;display:block}
+.divider{
+  align-self:center;font-size:.8rem;color:var(--muted);
+  background:var(--bot);padding:4px 12px;border-radius:999px;margin:6px 0;
+}
+.typing{display:inline-flex;gap:4px;align-items:center;height:20px}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);opacity:.5;animation:blink 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}
+.typing i:nth-child(3){animation-delay:.3s}
+@keyframes blink{50%{opacity:1}}
+.photo{
+  width:180px;height:130px;border-radius:10px;
+  background:repeating-linear-gradient(135deg, #8FA9A2 0 12px, #9DB5AE 12px 24px);
+  display:grid;place-items:center;color:#fff;font-size:.85rem;text-align:center;padding:8px;
+}
+/* Semáforo */
+.light{
+  align-self:flex-start;max-width:88%;
+  background:var(--card);border-radius:16px;border-top-left-radius:4px;
+  padding:14px;display:grid;grid-template-columns:auto 1fr;gap:14px;
+}
+.pole{
+  background:#26302E;border-radius:14px;padding:8px 7px;
+  display:flex;flex-direction:column;gap:7px;align-self:start;
+}
+.pole span{width:22px;height:22px;border-radius:50%;background:#46514F}
+.pole .on.r{background:var(--red);box-shadow:0 0 12px var(--red)}
+.pole .on.a{background:var(--amber);box-shadow:0 0 12px var(--amber)}
+.pole .on.g{background:var(--green);box-shadow:0 0 12px var(--green)}
+.verdict{font-size:1.35rem;font-weight:700;line-height:1.15;margin:0 0 4px}
+.verdict.r{color:var(--red)} .verdict.a{color:var(--amber)} .verdict.g{color:var(--green)}
+.light p{margin:0 0 8px}
+.light h3{font-size:.95rem;margin:8px 0 4px}
+.light ul{margin:0;padding-left:18px}
+.light li{margin-bottom:2px}
+.warn{font-size:.9rem;color:var(--muted);margin-top:8px}
+/* Ficha */
+.ficha{
+  align-self:flex-start;max-width:88%;
+  background:var(--card);border-radius:14px;border-top-left-radius:4px;
+  padding:12px 14px;border-left:4px solid var(--head);
+}
+.ficha strong{display:block;margin-bottom:6px}
+.ficha dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:.92rem}
+.ficha dt{color:var(--muted)}
+.ficha dd{margin:0}
+.copy{
+  margin-top:10px;font:inherit;font-size:.9rem;cursor:pointer;
+  background:var(--head);color:var(--head-ink);border:0;border-radius:999px;padding:7px 14px;
+}
+/* Respuestas rápidas */
+.replies{
+  display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;
+  padding:8px 12px 10px;flex:none;background:var(--tile);
+}
+.replies:empty{display:none}
+.chip{
+  font:inherit;font-size:.95rem;cursor:pointer;
+  background:var(--chip);color:var(--chip-ink);
+  border:1.5px solid var(--chip-line);border-radius:999px;padding:8px 14px;
+}
+.chip:hover{border-color:var(--chip-ink)}
+.composer{
+  display:flex;gap:8px;padding:8px 10px 10px;background:var(--tile);flex:none;
+}
+.composer input{
+  flex:1;font:inherit;border-radius:999px;border:1.5px solid var(--chip-line);
+  background:var(--chip);color:var(--ink);padding:10px 14px;min-width:0;
+}
+.composer input:disabled{opacity:.55}
+.send{
+  font:inherit;cursor:pointer;border:0;border-radius:999px;padding:0 16px;
+  background:var(--head);color:var(--head-ink);
+}
+.send:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+@media (max-width: 760px){
+  .aside{display:none}
+  body{display:block}
+  .phone{width:100%;height:100%;border-radius:0;box-shadow:none}
+}
+@media (prefers-reduced-motion: reduce){
+  .typing i{animation:none;opacity:.8}
+}
+</style>
+</head>
+<body>
+<aside class="aside">
+  <h1>Asistente del hogar</h1>
+  <p>Prototipo para pruebas con usuarios. Simula un asistente por chat que te ayuda a decidir si un problema de la casa puede esperar, qué hacer mientras tanto y cuánto debería costar.</p>
+  <p>Escenario de prueba: hay agua debajo de la pileta de la cocina. Los precios son de ejemplo.</p>
+</aside>
+
+<main class="phone" aria-label="Prototipo de chat">
+  <header>
+    <div class="avatar" aria-hidden="true">🔧</div>
+    <div class="who">
+      <strong>Asistente del hogar</strong>
+      <span>Prototipo · precios de ejemplo</span>
+    </div>
+    <button class="restart" id="restart" type="button">Empezar de nuevo</button>
+  </header>
+  <div class="chat" id="chat" role="log" aria-live="polite"></div>
+  <div class="replies" id="replies"></div>
+  <form class="composer" id="composer">
+    <label for="amount" class="sr" style="position:absolute;left:-9999px">Monto del presupuesto</label>
+    <input id="amount" inputmode="numeric" autocomplete="off" placeholder="Escribí un mensaje" disabled>
+    <button class="send" id="send" type="submit" disabled>Enviar</button>
+  </form>
+</main>
+
+<script>
+(function(){
+  var chat = document.getElementById('chat');
+  var replies = document.getElementById('replies');
+  var input = document.getElementById('amount');
+  var sendBtn = document.getElementById('send');
+  var form = document.getElementById('composer');
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var DELAY = reduce ? 120 : 700;
+  var run = 0;
+  var s = {};
+
+  function scroll(){ chat.scrollTop = chat.scrollHeight; }
+  function el(tag, cls, html){ var e=document.createElement(tag); if(cls) e.className=cls; if(html!=null) e.innerHTML=html; return e; }
+  function money(n){ return '$' + n.toLocaleString('es-UY'); }
+
+  function user(text){ chat.appendChild(el('div','msg user',text)); scroll(); }
+  function bot(html, then){
+    var my = run;
+    var t = el('div','msg bot','<span class="typing" aria-label="escribiendo"><i></i><i></i><i></i></span>');
+    chat.appendChild(t); scroll();
+    setTimeout(function(){
+      if(my!==run){ t.remove(); return; }
+      t.innerHTML = html; scroll();
+      if(then) then();
+    }, DELAY);
+  }
+  function bots(list, then){
+    var i=0;
+    (function next(){
+      if(i>=list.length){ if(then) then(); return; }
+      bot(list[i++], next);
+    })();
+  }
+  function card(node, then){
+    var my = run;
+    var t = el('div','msg bot','<span class="typing" aria-label="escribiendo"><i></i><i></i><i></i></span>');
+    chat.appendChild(t); scroll();
+    setTimeout(function(){
+      if(my!==run){ t.remove(); return; }
+      t.replaceWith(node); scroll();
+      if(then) then();
+    }, DELAY);
+  }
+  function options(list){
+    replies.innerHTML='';
+    list.forEach(function(o){
+      var b = el('button','chip',o.label); b.type='button';
+      b.addEventListener('click', function(){
+        replies.innerHTML='';
+        if(!o.silent) user(o.say || o.label);
+        o.go();
+      });
+      replies.appendChild(b);
+    });
+  }
+  function clearOptions(){ replies.innerHTML=''; }
+  function setInput(on){
+    input.disabled = !on; sendBtn.disabled = !on;
+    input.placeholder = on ? 'Escribí el monto, por ejemplo 3200' : 'Escribí un mensaje';
+    if(on) input.focus();
+  }
+
+  /* ---------- Flujo ---------- */
+  function start(){
+    run++; s = {}; chat.innerHTML=''; clearOptions(); setInput(false);
+    bots(['Hola 👋 Soy tu asistente para problemas de la casa. Contame qué está pasando.'], function(){
+      options([
+        {label:'Hay agua debajo de la pileta', go:pileta},
+        {label:'Una mancha de humedad', go:otro},
+        {label:'Salta la llave térmica', go:otro}
+      ]);
+    });
+  }
+  function otro(){
+    bots(['En este prototipo todavía solo está el caso de la pileta. ¿Lo probamos con ese?'], function(){
+      options([{label:'Sí, probemos con la pileta', say:'Hay agua debajo de la pileta', go:pileta}]);
+    });
+  }
+  function pileta(){
+    bots([
+      'Te hago 3 preguntas rápidas para ver qué tan urgente es.',
+      '¿Podés cerrar la llave de paso de la pileta?'
+    ], function(){
+      options([
+        {label:'Sí, la cerré', go:function(){ s.corta=true; q2(); }},
+        {label:'No puedo cerrarla', go:function(){ s.corta=false; resultado(); }},
+        {label:'No sé dónde está', go:llave}
+      ]);
+    });
+  }
+  function llave(){
+    bots(['Suele ser una llavecita en la pared, debajo de la pileta, donde llegan los caños. Girala hacia la derecha hasta que no gire más. ¿Pudiste?'], function(){
+      options([
+        {label:'Sí, la cerré', go:function(){ s.corta=true; q2(); }},
+        {label:'No la encuentro', go:function(){ s.corta=false; resultado(); }}
+      ]);
+    });
+  }
+  function q2(){
+    bots(['Con la canilla cerrada, ¿sigue saliendo agua?'], function(){
+      options([
+        {label:'Sí, sigue saliendo', go:function(){ s.sigue=true; q3(); }},
+        {label:'No, solo cuando la uso', go:function(){ s.sigue=false; q3(); }}
+      ]);
+    });
+  }
+  function q3(){
+    bots(['¿Cuánta agua sale?'], function(){
+      options([
+        {label:'Gotas', go:function(){ s.cant='gotas'; resultado(); }},
+        {label:'Un chorrito', go:function(){ s.cant='chorrito'; resultado(); }},
+        {label:'Mucha agua', go:function(){ s.cant='mucha'; resultado(); }}
+      ]);
+    });
+  }
+
+  function nivel(){
+    if(s.corta===false || s.cant==='mucha') return 'r';
+    return 'a';
+  }
+  function resultado(){
+    var n = nivel(); s.nivel = n;
+    var node = el('div','light');
+    var verdict, why, todo, alarm;
+    if(n==='r'){
+      verdict = 'Ya mismo';
+      why = s.corta===false
+        ? 'Si no se puede cortar el agua, la pérdida no se detiene y puede dañar el mueble, el piso o la pared.'
+        : 'Sale mucha agua: conviene que lo vea alguien hoy.';
+      todo = ['Cerrá la llave general (suele estar junto al medidor, en la entrada o la vereda).','Poné recipientes y toallas para frenar el agua.','Llamá a un sanitario hoy.'];
+      alarm = '';
+    } else {
+      verdict = s.sigue ? 'Hoy o mañana' : 'Esta semana';
+      why = s.sigue
+        ? 'No es una emergencia porque podés cortar el agua, pero si pierde aunque no uses la canilla conviene arreglarlo pronto.'
+        : 'No es una emergencia, pero conviene arreglarlo en los próximos días: la humedad puede dañar el mueble.';
+      todo = ['Dejá la llave de paso cerrada cuando no uses la pileta.','Poné un recipiente abajo y secá el mueble.'];
+      alarm = 'Si empieza a salir mucha agua o no podés cortarla, es para llamar ya mismo.';
+    }
+    s.verdict = verdict;
+    node.innerHTML =
+      '<div class="pole" aria-hidden="true">' +
+        '<span class="'+(n==='r'?'on r':'')+'"></span>' +
+        '<span class="'+(n==='a'?'on a':'')+'"></span>' +
+        '<span class="'+(n==='g'?'on g':'')+'"></span>' +
+      '</div>' +
+      '<div><p class="verdict '+n+'">'+verdict+'</p>' +
+      '<p>'+why+'</p>' +
+      '<h3>Qué hacer ahora</h3><ul>' + todo.map(function(t){return '<li>'+t+'</li>';}).join('') + '</ul>' +
+      (alarm ? '<p class="warn">⚠️ '+alarm+'</p>' : '') +
+      '</div>';
+    node.setAttribute('role','group');
+    node.setAttribute('aria-label','Resultado: '+verdict);
+    card(node, precio);
+  }
+  function precio(){
+    s.min = s.nivel==='r' ? 2500 : 2000;
+    s.max = s.nivel==='r' ? 5000 : 4000;
+    var extra = s.nivel==='r' ? ' Si es fuera de horario puede salir más.' : '';
+    bots(['Un arreglo así suele salir entre <strong>'+money(s.min)+' y '+money(s.max)+'</strong> (visita y materiales).'+extra+'<span class="note">Precio de ejemplo del prototipo.</span>'], function(){
+      options([
+        {label:'Armar ficha para el técnico', go:fichaFoto},
+        {label:'Más tarde', go:pedirPresupuesto}
+      ]);
+    });
+  }
+  function fichaFoto(){
+    bots(['Mandame una foto o un video corto de dónde sale el agua. Tip: filmá con la canilla abierta y cerrada, así el técnico ve el problema.'], function(){
+      options([{label:'📷 Mandar foto', silent:true, go:function(){
+        var m = el('div','msg user'); m.appendChild(el('div','photo','Foto de la pérdida debajo de la pileta')); chat.appendChild(m); scroll();
+        ficha();
+      }}]);
+    });
+  }
+  function ficha(){
+    var corta = s.corta ? 'Sí' : 'No';
+    var sigue = s.corta===false ? 'No se pudo verificar' : (s.sigue ? 'Sí, sigue saliendo' : 'No, solo cuando se usa');
+    var cant = s.cant ? ({gotas:'Gotas',chorrito:'Un chorrito',mucha:'Mucha agua'})[s.cant] : 'Sin dato';
+    var texto = 'Pérdida debajo de la pileta de la cocina.\nSe puede cortar el agua: '+corta+'.\nCon la canilla cerrada: '+sigue+'.\nCantidad: '+cant+'.\nUrgencia estimada: '+s.verdict+'.\nFoto adjunta.';
+    var node = el('div','ficha');
+    node.innerHTML = '<strong>Ficha para tu técnico</strong><dl>' +
+      '<dt>Problema</dt><dd>Pérdida debajo de la pileta de la cocina</dd>' +
+      '<dt>Corta el agua</dt><dd>'+corta+'</dd>' +
+      '<dt>Canilla cerrada</dt><dd>'+sigue+'</dd>' +
+      '<dt>Cantidad</dt><dd>'+cant+'</dd>' +
+      '<dt>Urgencia</dt><dd>'+s.verdict+'</dd>' +
+      '<dt>Foto</dt><dd>Adjunta</dd></dl>';
+    var b = el('button','copy','Copiar ficha'); b.type='button';
+    b.addEventListener('click', function(){
+      try{
+        navigator.clipboard.writeText(texto).then(function(){ b.textContent='Ficha copiada'; }, function(){ b.textContent='Seleccioná y copiá el texto'; });
+      }catch(e){ b.textContent='Seleccioná y copiá el texto'; }
+    });
+    node.appendChild(b);
+    card(node, function(){
+      bots(['Reenviásela a tu técnico de confianza. Con esto sabe qué va a encontrar antes de ir.'], pedirPresupuesto);
+    });
+  }
+  function pedirPresupuesto(){
+    bots(['Cuando te pasen el presupuesto, escribime el monto y te digo si está dentro del rango.'], function(){
+      setInput(true);
+      options([{label:'Todavía no tengo presupuesto', go:function(){ setInput(false); ofrecerSeguimiento(); }}]);
+    });
+  }
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    if(input.disabled) return;
+    var raw = input.value.replace(/[^0-9]/g,'');
+    if(!raw){ input.value=''; input.placeholder='Escribí solo el número, por ejemplo 3200'; return; }
+    var n = parseInt(raw,10);
+    input.value=''; setInput(false); clearOptions();
+    user(money(n));
+    var rango = money(s.min)+' a '+money(s.max);
+    var msg;
+    if(n > s.max){
+      msg = '⚠️ '+money(n)+' está por encima del rango de referencia ('+rango+'). Podés pedirle al técnico que te detalle cuánto es visita, materiales y mano de obra, o consultar a otro técnico.';
+    } else if(n < s.min){
+      msg = '✅ '+money(n)+' está por debajo del rango de referencia ('+rango+'). Es un buen precio.';
+    } else {
+      msg = '✅ '+money(n)+' está dentro del rango de referencia ('+rango+').';
+    }
+    bots([msg], ofrecerSeguimiento);
+  });
+  function ofrecerSeguimiento(){
+    bots(['En 3 días te pregunto cómo sigue, para que no quede olvidado.'], function(){
+      options([{label:'Simular: pasaron 3 días', silent:true, go:seguimiento}]);
+    });
+  }
+  function seguimiento(){
+    chat.appendChild(el('div','divider','3 días después')); scroll();
+    bots(['Hola 👋 ¿Cómo sigue la pérdida de la pileta?'], function(){
+      options([
+        {label:'Ya lo arreglé', go:function(){ bots(['¡Bien! Si vuelve a pasar, escribime.'], fin); }},
+        {label:'Sigue igual', go:function(){ bots(['Si sigue igual, no es más urgente, pero no lo dejes pasar: la humedad puede dañar el mueble. Te vuelvo a preguntar en 3 días.'], fin); }},
+        {label:'Empeoró', go:function(){ s={}; bots(['Entonces volvamos a ver qué tan urgente es.'], pileta); }}
+      ]);
+    });
+  }
+  function fin(){
+    options([{label:'Empezar de nuevo', silent:true, go:start}]);
+  }
+
+  document.getElementById('restart').addEventListener('click', start);
+  start();
+})();
+</script>
+</body>
+</html>
